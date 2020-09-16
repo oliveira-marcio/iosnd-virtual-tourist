@@ -23,7 +23,7 @@
             </objects>
             <point key="canvasLocation" x="-1585" y="140"/>
         </scene>
-        <!--Travel Locations Map View Controller-->
+        <!--Virtual Tourist-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="TravelLocationsMapViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
@@ -31,32 +31,32 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qxl-ew-9Xw">
-                                <rect key="frame" x="184" y="460" width="46" height="30"/>
-                                <state key="normal" title="Button"/>
-                                <connections>
-                                    <action selector="showPhotoAlbum:" destination="BYZ-38-t0r" eventType="touchUpInside" id="M0W-JA-haI"/>
-                                </connections>
-                            </button>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="Fb6-GI-6rw">
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
+                            </mapView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
-                            <constraint firstItem="qxl-ew-9Xw" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="7n6-aN-F4W"/>
-                            <constraint firstItem="qxl-ew-9Xw" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="paX-ql-rL4"/>
+                            <constraint firstItem="Fb6-GI-6rw" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="MqE-am-xv6"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="Fb6-GI-6rw" secondAttribute="trailing" id="WKJ-Xy-YnC"/>
+                            <constraint firstItem="Fb6-GI-6rw" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="XF1-4e-Uyg"/>
+                            <constraint firstItem="Fb6-GI-6rw" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="hrO-ry-gRw"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
-                    <navigationItem key="navigationItem" id="peg-ge-Yok"/>
+                    <navigationItem key="navigationItem" title="Virtual Tourist" id="peg-ge-Yok">
+                        <barButtonItem key="backBarButtonItem" title="OK" id="bd8-4Q-jZL"/>
+                    </navigationItem>
                     <connections>
-                        <outlet property="button" destination="qxl-ew-9Xw" id="teM-DK-9vn"/>
+                        <outlet property="mapView" destination="Fb6-GI-6rw" id="GdC-LR-7fk"/>
                         <segue destination="SSo-aL-xua" kind="show" identifier="showPhotoAlbum" id="Yhp-if-d0a"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-714" y="140"/>
+            <point key="canvasLocation" x="-714.49275362318849" y="139.95535714285714"/>
         </scene>
-        <!--Photo Album View Controller-->
+        <!--Virtual Tourist-->
         <scene sceneID="njX-p9-2EF">
             <objects>
                 <viewController id="SSo-aL-xua" customClass="PhotoAlbumViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
@@ -78,7 +78,7 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="TT9-63-VdW"/>
                     </view>
-                    <navigationItem key="navigationItem" id="XJb-eC-AOc"/>
+                    <navigationItem key="navigationItem" title="Virtual Tourist" id="XJb-eC-AOc"/>
                     <connections>
                         <outlet property="label" destination="cLg-1F-vGI" id="GdB-7K-OOj"/>
                     </connections>
