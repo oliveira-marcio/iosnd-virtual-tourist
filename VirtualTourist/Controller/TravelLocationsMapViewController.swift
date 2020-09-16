@@ -13,35 +13,45 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
 
-    var currentMapRegion: MKCoordinateRegion!
+    var currentMapRegion: MKCoordinateRegion?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         loadMapAnnotations()
-        getMapRegion()
+        loadMapRegion()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        saveMapRegion()
+    }
 
+    func saveMapRegion() {
         UserDefaults.standard.set(currentMapRegion?.center.latitude, forKey: "mapRegionCenterLatitude")
         UserDefaults.standard.set(currentMapRegion?.center.longitude, forKey: "mapRegionCenterLongitude")
         UserDefaults.standard.set(currentMapRegion?.span.latitudeDelta, forKey: "mapRegionLatitudeDelta")
         UserDefaults.standard.set(currentMapRegion?.span.longitudeDelta, forKey: "mapRegionLongitudeDelta")
     }
 
-    private func getMapRegion() {
-        let lat = CLLocationDegrees(truncating: (UserDefaults.standard.value(forKey: "mapRegionCenterLatitude") as? NSNumber) ?? 38.714761)
-        let long = CLLocationDegrees(truncating: (UserDefaults.standard.value(forKey: "mapRegionCenterLongitude") as? NSNumber) ?? -9.1568121)
-        let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+    private func loadMapRegion() {
+        let centerLatitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLatitude", defaultValue: 38.714761)
+        let centerLongitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLongitude", defaultValue: -9.1568121)
+        let coordinate = CLLocationCoordinate2D(latitude: centerLatitude, longitude: centerLongitude)
 
-        let latitudeDelta = CLLocationDegrees(truncating: (UserDefaults.standard.value(forKey: "mapRegionLatitudeDelta") as? NSNumber) ?? 0.083862955545754403)
-        let longitudeDelta = CLLocationDegrees(truncating: (UserDefaults.standard.value(forKey: "mapRegionLongitudeDelta") as? NSNumber) ?? 0.057489037524248943)
+        let latitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLatitudeDelta", defaultValue: 0.083862955545754403)
+        let longitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLongitudeDelta", defaultValue: 0.057489037524248943)
         let span = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
 
         currentMapRegion = MKCoordinateRegion(center: coordinate, span: span)
 
-        mapView.setRegion(mapView.regionThatFits(currentMapRegion), animated: true)
+        if let currentMapRegion = currentMapRegion {
+            mapView.setRegion(mapView.regionThatFits(currentMapRegion), animated: true)
+        }
+    }
+
+    private func getCoordinateFromPersistence(forKey: String, defaultValue: Float) -> CLLocationDegrees {
+        let coordinate = UserDefaults.standard.float(forKey: forKey)
+        return CLLocationDegrees(coordinate == 0 ? defaultValue : coordinate)
     }
 
     private func loadMapAnnotations() {
