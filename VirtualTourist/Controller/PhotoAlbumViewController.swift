@@ -7,16 +7,17 @@
 //
 
 import UIKit
+import MapKit
 
 class PhotoAlbumViewController: UIViewController {
 
     @IBOutlet weak var label: UILabel!
-    var test: String!
+    var selectedCoordinate: CLLocationCoordinate2D!
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        label.text = test
+        label.text = "\(selectedCoordinate.latitude), \(selectedCoordinate.longitude)"
     }
     
 

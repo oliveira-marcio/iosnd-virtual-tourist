@@ -14,16 +14,27 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var mapView: MKMapView!
 
     var currentMapRegion: MKCoordinateRegion?
+    var mapAnnotations = [MKPointAnnotation]()
+    var selectedCoordinate: CLLocationCoordinate2D?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        mapView.delegate = self
+
         loadMapAnnotations()
         loadMapRegion()
+        addAnnotation(latitude: 38.714761, longitude: -9.1568121)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         saveMapRegion()
+    }
+
+    private func loadMapAnnotations() {
+        // TODO: load from database
+        mapView.addAnnotations(mapAnnotations)
     }
 
     func saveMapRegion() {
@@ -54,23 +65,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
         return CLLocationDegrees(coordinate == 0 ? defaultValue : coordinate)
     }
 
-    private func loadMapAnnotations() {
-        mapView.delegate = self
-
-        let lat = CLLocationDegrees(38.714761)
-        let long = CLLocationDegrees(-9.1568121)
-        let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
-
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinate
-
-        var annotations = [MKPointAnnotation]()
-        annotations.append(annotation)
-
-        mapView.removeAnnotations(mapView.annotations)
-        mapView.showAnnotations(annotations, animated: true)
-    }
-
     // MARK: - Map View Delegate
 
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
@@ -93,6 +87,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
     }
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        selectedCoordinate = mapView.selectedAnnotations.first?.coordinate
         performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
         mapView.selectedAnnotations = []
     }
@@ -101,9 +96,28 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
        currentMapRegion = mapView.region
     }
 
+    @IBAction func handleMapLongPress(_ gestureRecognizer: UILongPressGestureRecognizer) {
+        if gestureRecognizer.state == .began {
+            let touchPoint = gestureRecognizer.location(in: mapView)
+            let coordinates = mapView.convert(touchPoint, toCoordinateFrom: mapView)
+            addAnnotation(latitude: coordinates.latitude, longitude: coordinates.longitude)
+        }
+    }
+
+    private func addAnnotation(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+
+        mapAnnotations.append(annotation)
+        mapView.addAnnotation(annotation)
+        // TODO: Save to database
+    }
+
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
-        photoAlbumViewController.test = "Yay"
+        photoAlbumViewController.selectedCoordinate = selectedCoordinate
     }
 }
 
