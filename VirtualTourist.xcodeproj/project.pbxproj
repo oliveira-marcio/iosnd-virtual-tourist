@@ -9,21 +9,23 @@
 /* Begin PBXBuildFile section */
 		9CF58249250FF684002A0805 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF58248250FF684002A0805 /* AppDelegate.swift */; };
 		9CF5824B250FF684002A0805 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF5824A250FF684002A0805 /* SceneDelegate.swift */; };
-		9CF5824D250FF684002A0805 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF5824C250FF684002A0805 /* ViewController.swift */; };
+		9CF5824D250FF684002A0805 /* TravelLocationsMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF5824C250FF684002A0805 /* TravelLocationsMapViewController.swift */; };
 		9CF58250250FF684002A0805 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9CF5824E250FF684002A0805 /* Main.storyboard */; };
 		9CF58252250FF685002A0805 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9CF58251250FF685002A0805 /* Assets.xcassets */; };
 		9CF58255250FF685002A0805 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9CF58253250FF685002A0805 /* LaunchScreen.storyboard */; };
+		9CF582612511F065002A0805 /* PhotoAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF582602511F065002A0805 /* PhotoAlbumViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9CF58245250FF684002A0805 /* VirtualTourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualTourist.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9CF58248250FF684002A0805 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9CF5824A250FF684002A0805 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		9CF5824C250FF684002A0805 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		9CF5824C250FF684002A0805 /* TravelLocationsMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelLocationsMapViewController.swift; sourceTree = "<group>"; };
 		9CF5824F250FF684002A0805 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		9CF58251250FF685002A0805 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9CF58254250FF685002A0805 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9CF58256250FF685002A0805 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9CF582602511F065002A0805 /* PhotoAlbumViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAlbumViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,7 +81,8 @@
 		9CF5825D2510DF7F002A0805 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				9CF5824C250FF684002A0805 /* ViewController.swift */,
+				9CF5824C250FF684002A0805 /* TravelLocationsMapViewController.swift */,
+				9CF582602511F065002A0805 /* PhotoAlbumViewController.swift */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -170,9 +173,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9CF5824D250FF684002A0805 /* ViewController.swift in Sources */,
+				9CF5824D250FF684002A0805 /* TravelLocationsMapViewController.swift in Sources */,
 				9CF58249250FF684002A0805 /* AppDelegate.swift in Sources */,
 				9CF5824B250FF684002A0805 /* SceneDelegate.swift in Sources */,
+				9CF582612511F065002A0805 /* PhotoAlbumViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
