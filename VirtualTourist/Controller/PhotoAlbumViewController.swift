@@ -9,10 +9,11 @@
 import UIKit
 import MapKit
 
-class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
+class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectionViewDataSource {
 
-    @IBOutlet weak var label: UILabel!
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var photosCollectionView: UICollectionView!
+    @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
 
     var selectedCoordinate: CLLocationCoordinate2D!
 
@@ -20,10 +21,37 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         super.viewDidLoad()
 
         mapView.delegate = self
+        photosCollectionView.dataSource = self
+        
         loadMapResults()
-
-        label.text = "\(selectedCoordinate.latitude), \(selectedCoordinate.longitude)"
+        computeFlowLayout()
     }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        computeFlowLayout()
+    }
+
+    func computeFlowLayout() {
+        let space: CGFloat = 2.0
+
+        let isPortrait = UIDevice.current.orientation.isValidInterfaceOrientation
+            ? UIDevice.current.orientation.isPortrait
+            : (view.frame.size.width < view.frame.size.height)
+
+        let numOfCols: CGFloat = isPortrait ? 3.0 : 5.0
+        let spacesBetweenCols = numOfCols - 1
+
+        let portraitViewWidth = min(view.frame.size.width, view.frame.size.height)
+        let landscapeViewWidth = max(view.frame.size.width, view.frame.size.height)
+        let horizontalViewDimension = isPortrait ? portraitViewWidth : landscapeViewWidth
+
+        let dimension = (horizontalViewDimension - (spacesBetweenCols * space)) / numOfCols
+
+        flowLayout.minimumInteritemSpacing = space
+        flowLayout.minimumLineSpacing = space
+        flowLayout.itemSize = CGSize(width: dimension, height: dimension)
+    }
+
     
     private func loadMapResults() {
         let annotation = MKPointAnnotation()
@@ -51,6 +79,18 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         }
 
         return pinView
+    }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 25
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionViewCell", for: indexPath) as! PhotoCollectionViewCell
+
+        cell.photoImageView.image = UIImage(named: "VirtualTourist_120")
+
+        return cell
     }
 
 }
