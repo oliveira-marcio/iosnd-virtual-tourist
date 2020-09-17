@@ -79,10 +79,19 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" mapType="standard" zoomEnabled="NO" scrollEnabled="NO" rotateEnabled="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Cve-fR-bTG">
+                                <rect key="frame" x="0.0" y="88" width="414" height="200"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="200" id="kpd-xc-a5B"/>
+                                </constraints>
+                            </mapView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
+                            <constraint firstItem="Cve-fR-bTG" firstAttribute="trailing" secondItem="TT9-63-VdW" secondAttribute="trailing" id="1bG-X9-LZQ"/>
+                            <constraint firstItem="Cve-fR-bTG" firstAttribute="top" secondItem="TT9-63-VdW" secondAttribute="top" id="8Rn-D6-d0v"/>
                             <constraint firstItem="cLg-1F-vGI" firstAttribute="centerX" secondItem="TT9-63-VdW" secondAttribute="centerX" id="Cqd-dd-SkE"/>
+                            <constraint firstItem="Cve-fR-bTG" firstAttribute="leading" secondItem="TT9-63-VdW" secondAttribute="leading" id="Qwg-Lw-OFL"/>
                             <constraint firstItem="cLg-1F-vGI" firstAttribute="centerY" secondItem="TT9-63-VdW" secondAttribute="centerY" id="XEu-cw-qgP"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="TT9-63-VdW"/>
@@ -90,11 +99,12 @@
                     <navigationItem key="navigationItem" title="Virtual Tourist" id="XJb-eC-AOc"/>
                     <connections>
                         <outlet property="label" destination="cLg-1F-vGI" id="GdB-7K-OOj"/>
+                        <outlet property="mapView" destination="Cve-fR-bTG" id="7Av-jV-MWH"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="IfT-Cd-XVL" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="158" y="140"/>
+            <point key="canvasLocation" x="155.07246376811597" y="139.95535714285714"/>
         </scene>
     </scenes>
 </document>
