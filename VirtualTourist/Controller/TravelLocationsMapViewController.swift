@@ -111,6 +111,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
         mapAnnotations.append(annotation)
         mapView.addAnnotation(annotation)
+        mapView.setCenter(coordinate, animated: true)
         // TODO: Save to database
     }
 
