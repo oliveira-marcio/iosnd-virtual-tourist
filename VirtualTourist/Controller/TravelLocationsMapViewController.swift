@@ -15,7 +15,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     var currentMapRegion: MKCoordinateRegion?
     var mapAnnotations = [MKPointAnnotation]()
-    var selectedCoordinate: CLLocationCoordinate2D?
+    var selectedAnnotation: MKAnnotation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,7 +24,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
         loadMapAnnotations()
         loadMapRegion()
-        addAnnotation(latitude: 38.714761, longitude: -9.1568121)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -45,12 +44,12 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
     }
 
     private func loadMapRegion() {
-        let centerLatitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLatitude", defaultValue: 38.714761)
-        let centerLongitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLongitude", defaultValue: -9.1568121)
+        let centerLatitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLatitude", defaultValue: 38.707386065604652)
+        let centerLongitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLongitude", defaultValue: -9.1548092420383398)
         let coordinate = CLLocationCoordinate2D(latitude: centerLatitude, longitude: centerLongitude)
 
-        let latitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLatitudeDelta", defaultValue: 0.083862955545754403)
-        let longitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLongitudeDelta", defaultValue: 0.057489037524248943)
+        let latitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLatitudeDelta", defaultValue: 0.088252179893437699)
+        let longitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLongitudeDelta", defaultValue: 0.088252179893437699)
         let span = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
 
         currentMapRegion = MKCoordinateRegion(center: coordinate, span: span)
@@ -87,7 +86,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
     }
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        selectedCoordinate = mapView.selectedAnnotations.first?.coordinate
+        selectedAnnotation = mapView.selectedAnnotations.first
         performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
         mapView.selectedAnnotations = []
     }
@@ -117,7 +116,25 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
-        photoAlbumViewController.selectedCoordinate = selectedCoordinate
+        photoAlbumViewController.selectedAnnotation = selectedAnnotation
+
+        photoAlbumViewController.onDelete = { [weak self] in
+            if let selectedAnnotation = self?.selectedAnnotation {
+                self?.mapAnnotations.removeAll {
+                    let expectedLat = Float($0.coordinate.latitude)
+                    let currentLat = Float(selectedAnnotation.coordinate.latitude)
+
+                    let expectedLong = Float($0.coordinate.longitude)
+                    let currentLong = Float(selectedAnnotation.coordinate.longitude)
+
+                    return expectedLat == currentLat && expectedLong == currentLong
+                }
+                self?.mapView.removeAnnotation(selectedAnnotation)
+                // TODO: Delete in database
+
+                self?.navigationController?.popViewController(animated: true)
+            }
+        }
     }
 }
 

@@ -143,7 +143,13 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="TT9-63-VdW"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Virtual Tourist" id="XJb-eC-AOc"/>
+                    <navigationItem key="navigationItem" title="Virtual Tourist" id="XJb-eC-AOc">
+                        <barButtonItem key="rightBarButtonItem" title="Item" image="trash" catalog="system" id="FVg-te-jXy">
+                            <connections>
+                                <action selector="deleteLocation:" destination="SSo-aL-xua" id="NWA-Ib-MgT"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="flowLayout" destination="huk-i7-IUJ" id="c0n-oi-MYi"/>
                         <outlet property="mapView" destination="Cve-fR-bTG" id="7Av-jV-MWH"/>
@@ -155,4 +161,7 @@
             <point key="canvasLocation" x="155.07246376811597" y="139.95535714285714"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="trash" catalog="system" width="121" height="128"/>
+    </resources>
 </document>

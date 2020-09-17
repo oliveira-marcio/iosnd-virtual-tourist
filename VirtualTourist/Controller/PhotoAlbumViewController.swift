@@ -15,7 +15,8 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
 
-    var selectedCoordinate: CLLocationCoordinate2D!
+    var selectedAnnotation: MKAnnotation!
+    var onDelete: (() -> Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,10 +55,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
 
     
     private func loadMapResults() {
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = selectedCoordinate
-
-        self.mapView.showAnnotations([annotation], animated: false)
+        self.mapView.showAnnotations([selectedAnnotation], animated: false)
     }
 
     // MARK: - Map View Delegate
@@ -93,4 +91,21 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         return cell
     }
 
+    @IBAction func deleteLocation(_ sender: Any) {
+        showDeleteAlert()
+    }
+
+    private func showDeleteAlert() {
+        let alert = UIAlertController(title: "Delete Location?", message: "Are you sure you want to delete the current location?", preferredStyle: .alert)
+
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let strongSelf = self else { return }
+            strongSelf.onDelete?()
+        }
+
+        alert.addAction(cancelAction)
+        alert.addAction(deleteAction)
+        present(alert, animated: true, completion: nil)
+    }
 }
