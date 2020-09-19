@@ -62,6 +62,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
             annotations.append(annotation)
         }
 
+        mapView.removeAnnotations(mapView.annotations)
         mapView.addAnnotations(annotations)
     }
 
@@ -133,15 +134,19 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     }
 
     private func addAnnotation(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+        // Workaround to retrieve map control after long press gesture
         let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinate
-
-//        mapAnnotations.append(annotation)
-        mapView.addAnnotation(annotation)
         mapView.setCenter(coordinate, animated: true)
-        // TODO: Save to database
+
+        let pin = Pin(context: dataController.viewContext)
+        pin.latitude = latitude
+        pin.longitude = longitude
+        pin.creationDate = Date()
+        try? dataController.viewContext.save()
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        loadMapAnnotations()
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
