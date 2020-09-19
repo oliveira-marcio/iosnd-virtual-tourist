@@ -19,19 +19,23 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
 
     var onDelete: (() -> Void)?
 
+    // MARK: - Life Cycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         mapView.delegate = self
         photosCollectionView.dataSource = self
         
-        loadMapResults()
+        loadMapSelectedPin()
         computeFlowLayout()
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         computeFlowLayout()
     }
+
+    // MARK: - Compute Photo Album Flow Layout
 
     func computeFlowLayout() {
         let space: CGFloat = 2.0
@@ -54,8 +58,9 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         flowLayout.itemSize = CGSize(width: dimension, height: dimension)
     }
 
-    
-    private func loadMapResults() {
+    // MARK: - Load Map Selected Pin from TravelLocationMapViewController
+
+    private func loadMapSelectedPin() {
         let annotation = MKPointAnnotation()
         annotation.coordinate = CLLocationCoordinate2D(latitude: selectedPin.latitude, longitude: selectedPin.longitude)
 
@@ -83,6 +88,8 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         return pinView
     }
 
+    // MARK: - Collection View Delegate
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 25
     }
@@ -94,6 +101,8 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
 
         return cell
     }
+
+    // MARK: - Actions
 
     @IBAction func deleteLocation(_ sender: Any) {
         showDeleteAlert()

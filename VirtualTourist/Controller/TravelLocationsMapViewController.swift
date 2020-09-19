@@ -20,6 +20,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     var currentMapRegion: MKCoordinateRegion?
     var selectedPin: Pin?
 
+    // MARK: - Life Cycle
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -38,6 +40,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         fetchedResultsController = nil
     }
 
+    // MARK: - Setup Fetched Results Controller
+
     private func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
 
@@ -49,53 +53,10 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController.performFetch()
-            loadMapAnnotations()
+            loadMapPins()
         } catch {
             fatalError("The fetch could not be performed: \(error.localizedDescription)")
         }
-    }
-
-    private func loadMapAnnotations() {
-        guard let pins = fetchedResultsController.fetchedObjects else { return }
-
-        var annotations = [MKPointAnnotation]()
-
-        for pin in pins {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
-            annotations.append(annotation)
-        }
-
-        mapView.removeAnnotations(mapView.annotations)
-        mapView.addAnnotations(annotations)
-    }
-
-    func saveMapRegion() {
-        UserDefaults.standard.set(currentMapRegion?.center.latitude, forKey: "mapRegionCenterLatitude")
-        UserDefaults.standard.set(currentMapRegion?.center.longitude, forKey: "mapRegionCenterLongitude")
-        UserDefaults.standard.set(currentMapRegion?.span.latitudeDelta, forKey: "mapRegionLatitudeDelta")
-        UserDefaults.standard.set(currentMapRegion?.span.longitudeDelta, forKey: "mapRegionLongitudeDelta")
-    }
-
-    private func loadMapRegion() {
-        let centerLatitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLatitude", defaultValue: 38.707386065604652)
-        let centerLongitude = getCoordinateFromPersistence(forKey: "mapRegionCenterLongitude", defaultValue: -9.1548092420383398)
-        let coordinate = CLLocationCoordinate2D(latitude: centerLatitude, longitude: centerLongitude)
-
-        let latitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLatitudeDelta", defaultValue: 0.088252179893437699)
-        let longitudeDelta = getCoordinateFromPersistence(forKey: "mapRegionLongitudeDelta", defaultValue: 0.088252179893437699)
-        let span = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
-
-        currentMapRegion = MKCoordinateRegion(center: coordinate, span: span)
-
-        if let currentMapRegion = currentMapRegion {
-            mapView.setRegion(mapView.regionThatFits(currentMapRegion), animated: true)
-        }
-    }
-
-    private func getCoordinateFromPersistence(forKey: String, defaultValue: Float) -> CLLocationDegrees {
-        let coordinate = UserDefaults.standard.float(forKey: forKey)
-        return CLLocationDegrees(coordinate == 0 ? defaultValue : coordinate)
     }
 
     // MARK: - Map View Delegate
@@ -142,15 +103,48 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
        currentMapRegion = mapView.region
     }
 
+    // MARK: - Actions
+
     @IBAction func handleMapLongPress(_ gestureRecognizer: UILongPressGestureRecognizer) {
         if gestureRecognizer.state == .began {
             let touchPoint = gestureRecognizer.location(in: mapView)
             let coordinates = mapView.convert(touchPoint, toCoordinateFrom: mapView)
-            addAnnotation(latitude: coordinates.latitude, longitude: coordinates.longitude)
+            addMapPin(latitude: coordinates.latitude, longitude: coordinates.longitude)
         }
     }
 
-    private func addAnnotation(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+    // MARK: - Prepare For Segue
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
+        photoAlbumViewController.selectedPin = selectedPin
+
+        photoAlbumViewController.onDelete = { [weak self] in
+            if let selectedPin = self?.selectedPin {
+                self?.deleteMapPin(selectedPin)
+                self?.navigationController?.popViewController(animated: true)
+            }
+        }
+    }
+
+    // MARK: - Map Data Handling
+
+    private func loadMapPins() {
+        guard let pins = fetchedResultsController.fetchedObjects else { return }
+
+        var annotations = [MKPointAnnotation]()
+
+        for pin in pins {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
+            annotations.append(annotation)
+        }
+
+        mapView.removeAnnotations(mapView.annotations)
+        mapView.addAnnotations(annotations)
+    }
+
+    private func addMapPin(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
         // Workaround to retrieve map control after long press gesture
         let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         mapView.setCenter(coordinate, animated: true)
@@ -159,24 +153,47 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         pin.latitude = latitude
         pin.longitude = longitude
         pin.creationDate = Date()
+
         try? dataController.viewContext.save()
     }
 
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        loadMapAnnotations()
+    private func deleteMapPin(_ pin: Pin) {
+        dataController.viewContext.delete(pin)
+        try? dataController.viewContext.save()
     }
 
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
-        photoAlbumViewController.selectedPin = selectedPin
+    func saveMapRegion() {
+        UserDefaults.standard.set(currentMapRegion?.center.latitude, forKey: "mapRegionCenterLatitude")
+        UserDefaults.standard.set(currentMapRegion?.center.longitude, forKey: "mapRegionCenterLongitude")
+        UserDefaults.standard.set(currentMapRegion?.span.latitudeDelta, forKey: "mapRegionLatitudeDelta")
+        UserDefaults.standard.set(currentMapRegion?.span.longitudeDelta, forKey: "mapRegionLongitudeDelta")
+    }
 
-        photoAlbumViewController.onDelete = { [weak self] in
-            if let selectedPin = self?.selectedPin {
-                self?.dataController.viewContext.delete(selectedPin)
-                try? self?.dataController.viewContext.save()
-                self?.navigationController?.popViewController(animated: true)
-            }
+    private func loadMapRegion() {
+        let centerLatitude = getCoordinatesFromPersistence(forKey: "mapRegionCenterLatitude", defaultValue: 38.707386065604652)
+        let centerLongitude = getCoordinatesFromPersistence(forKey: "mapRegionCenterLongitude", defaultValue: -9.1548092420383398)
+        let coordinate = CLLocationCoordinate2D(latitude: centerLatitude, longitude: centerLongitude)
+
+        let latitudeDelta = getCoordinatesFromPersistence(forKey: "mapRegionLatitudeDelta", defaultValue: 0.088252179893437699)
+        let longitudeDelta = getCoordinatesFromPersistence(forKey: "mapRegionLongitudeDelta", defaultValue: 0.088252179893437699)
+        let span = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
+
+        currentMapRegion = MKCoordinateRegion(center: coordinate, span: span)
+
+        if let currentMapRegion = currentMapRegion {
+            mapView.setRegion(mapView.regionThatFits(currentMapRegion), animated: true)
         }
+    }
+
+    private func getCoordinatesFromPersistence(forKey: String, defaultValue: Float) -> CLLocationDegrees {
+        let coordinate = UserDefaults.standard.float(forKey: forKey)
+        return CLLocationDegrees(coordinate == 0 ? defaultValue : coordinate)
+    }
+
+    // MARK: - Fetched Results Controller Delegate
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        loadMapPins()
     }
 }
 
