@@ -15,7 +15,8 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
 
-    var selectedAnnotation: MKAnnotation!
+    var selectedPin: Pin!
+
     var onDelete: (() -> Void)?
 
     override func viewDidLoad() {
@@ -55,7 +56,10 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
 
     
     private func loadMapResults() {
-        self.mapView.showAnnotations([selectedAnnotation], animated: false)
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = CLLocationCoordinate2D(latitude: selectedPin.latitude, longitude: selectedPin.longitude)
+
+        self.mapView.showAnnotations([annotation], animated: false)
     }
 
     // MARK: - Map View Delegate

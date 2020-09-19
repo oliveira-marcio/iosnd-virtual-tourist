@@ -18,15 +18,18 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     var fetchedResultsController: NSFetchedResultsController<Pin>!
 
     var currentMapRegion: MKCoordinateRegion?
+    var selectedPin: Pin?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         mapView.delegate = self
 
-        setupFetchedResultsController()
-        loadMapAnnotations()
         loadMapRegion()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        setupFetchedResultsController()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -41,11 +44,12 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
         fetchRequest.sortDescriptors = [sortDescriptor]
 
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: "pins")
 
         fetchedResultsController.delegate = self
         do {
             try fetchedResultsController.performFetch()
+            loadMapAnnotations()
         } catch {
             fatalError("The fetch could not be performed: \(error.localizedDescription)")
         }
@@ -116,8 +120,21 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     }
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-//        selectedAnnotation = mapView.selectedAnnotations.first
-//        performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
+        guard let selectedAnnotation = mapView.selectedAnnotations.first,
+            let pins = fetchedResultsController.fetchedObjects,
+            let selectedPin = pins.first(where: {
+                let expectedLat = selectedAnnotation.coordinate.latitude
+                let currentLat = $0.latitude
+
+                let expectedLong = selectedAnnotation.coordinate.longitude
+                let currentLong = $0.longitude
+
+                return expectedLat == currentLat && expectedLong == currentLong
+            }) else { return }
+
+
+        self.selectedPin = selectedPin
+        performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
         mapView.selectedAnnotations = []
     }
 
@@ -151,7 +168,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
-//        photoAlbumViewController.selectedAnnotation = selectedAnnotation
+        photoAlbumViewController.selectedPin = selectedPin
 
         photoAlbumViewController.onDelete = { [weak self] in
 //            if let selectedAnnotation = self?.selectedAnnotation {
