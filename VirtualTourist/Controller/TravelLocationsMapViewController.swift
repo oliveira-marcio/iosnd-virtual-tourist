@@ -171,21 +171,11 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         photoAlbumViewController.selectedPin = selectedPin
 
         photoAlbumViewController.onDelete = { [weak self] in
-//            if let selectedAnnotation = self?.selectedAnnotation {
-//                self?.mapAnnotations.removeAll {
-//                    let expectedLat = Float($0.coordinate.latitude)
-//                    let currentLat = Float(selectedAnnotation.coordinate.latitude)
-//
-//                    let expectedLong = Float($0.coordinate.longitude)
-//                    let currentLong = Float(selectedAnnotation.coordinate.longitude)
-//
-//                    return expectedLat == currentLat && expectedLong == currentLong
-//                }
-//                self?.mapView.removeAnnotation(selectedAnnotation)
-//                // TODO: Delete in database
-//
-//                self?.navigationController?.popViewController(animated: true)
-//            }
+            if let selectedPin = self?.selectedPin {
+                self?.dataController.viewContext.delete(selectedPin)
+                try? self?.dataController.viewContext.save()
+                self?.navigationController?.popViewController(animated: true)
+            }
         }
     }
 }
