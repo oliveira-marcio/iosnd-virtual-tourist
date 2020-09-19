@@ -5,12 +5,13 @@
         <relationship name="pin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Pin" inverseName="photos" inverseEntity="Pin"/>
     </entity>
     <entity name="Pin" representedClassName="Pin" syncable="YES" codeGenerationType="class">
-        <attribute name="latitude" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="longitude" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="creationDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="latitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Photo" inverseName="pin" inverseEntity="Photo"/>
     </entity>
     <elements>
-        <element name="Pin" positionX="-244.1875" positionY="-22.2734375" width="128" height="88"/>
         <element name="Photo" positionX="-45.3203125" positionY="-7.12109375" width="128" height="73"/>
+        <element name="Pin" positionX="-244.1875" positionY="-22.2734375" width="128" height="103"/>
     </elements>
 </model>

@@ -8,22 +8,23 @@
 
 import UIKit
 import MapKit
+import CoreData
 
-class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
+class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsControllerDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
 
     var dataController: DataController!
+    var fetchedResultsController: NSFetchedResultsController<Pin>!
 
     var currentMapRegion: MKCoordinateRegion?
-    var mapAnnotations = [MKPointAnnotation]()
-    var selectedAnnotation: MKAnnotation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         mapView.delegate = self
 
+        setupFetchedResultsController()
         loadMapAnnotations()
         loadMapRegion()
     }
@@ -31,11 +32,37 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         saveMapRegion()
+        fetchedResultsController = nil
+    }
+
+    private func setupFetchedResultsController() {
+        let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
+
+        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
+
+        fetchedResultsController.delegate = self
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            fatalError("The fetch could not be performed: \(error.localizedDescription)")
+        }
     }
 
     private func loadMapAnnotations() {
-        // TODO: load from database
-        mapView.addAnnotations(mapAnnotations)
+        guard let pins = fetchedResultsController.fetchedObjects else { return }
+
+        var annotations = [MKPointAnnotation]()
+
+        for pin in pins {
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
+            annotations.append(annotation)
+        }
+
+        mapView.addAnnotations(annotations)
     }
 
     func saveMapRegion() {
@@ -88,8 +115,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
     }
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        selectedAnnotation = mapView.selectedAnnotations.first
-        performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
+//        selectedAnnotation = mapView.selectedAnnotations.first
+//        performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
         mapView.selectedAnnotations = []
     }
 
@@ -111,7 +138,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
 
-        mapAnnotations.append(annotation)
+//        mapAnnotations.append(annotation)
         mapView.addAnnotation(annotation)
         mapView.setCenter(coordinate, animated: true)
         // TODO: Save to database
@@ -119,24 +146,24 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
-        photoAlbumViewController.selectedAnnotation = selectedAnnotation
+//        photoAlbumViewController.selectedAnnotation = selectedAnnotation
 
         photoAlbumViewController.onDelete = { [weak self] in
-            if let selectedAnnotation = self?.selectedAnnotation {
-                self?.mapAnnotations.removeAll {
-                    let expectedLat = Float($0.coordinate.latitude)
-                    let currentLat = Float(selectedAnnotation.coordinate.latitude)
-
-                    let expectedLong = Float($0.coordinate.longitude)
-                    let currentLong = Float(selectedAnnotation.coordinate.longitude)
-
-                    return expectedLat == currentLat && expectedLong == currentLong
-                }
-                self?.mapView.removeAnnotation(selectedAnnotation)
-                // TODO: Delete in database
-
-                self?.navigationController?.popViewController(animated: true)
-            }
+//            if let selectedAnnotation = self?.selectedAnnotation {
+//                self?.mapAnnotations.removeAll {
+//                    let expectedLat = Float($0.coordinate.latitude)
+//                    let currentLat = Float(selectedAnnotation.coordinate.latitude)
+//
+//                    let expectedLong = Float($0.coordinate.longitude)
+//                    let currentLong = Float(selectedAnnotation.coordinate.longitude)
+//
+//                    return expectedLat == currentLat && expectedLong == currentLong
+//                }
+//                self?.mapView.removeAnnotation(selectedAnnotation)
+//                // TODO: Delete in database
+//
+//                self?.navigationController?.popViewController(animated: true)
+//            }
         }
     }
 }
