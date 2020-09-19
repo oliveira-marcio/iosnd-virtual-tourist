@@ -13,6 +13,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
 
+    var dataController: DataController!
+
     var currentMapRegion: MKCoordinateRegion?
     var mapAnnotations = [MKPointAnnotation]()
     var selectedAnnotation: MKAnnotation?
