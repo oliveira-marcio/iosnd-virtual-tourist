@@ -65,7 +65,9 @@ class FlickrGateway {
                 let photo = photos["photo"] as? [[String: Any]]
             else {
                 print("Invalid JSON")
-                completion([])
+                DispatchQueue.main.async {
+                    completion([])
+                }
                 return
             }
 
@@ -75,7 +77,9 @@ class FlickrGateway {
 
             self.totalPages = pages
 
-            completion(imagesURLs)
+            DispatchQueue.main.async {
+                completion(imagesURLs)
+            }
         }
         task.resume()
     }

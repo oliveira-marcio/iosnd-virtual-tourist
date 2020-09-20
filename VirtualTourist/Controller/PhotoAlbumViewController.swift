@@ -17,6 +17,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
 
     var gateway: FlickrGateway!
     var selectedPin: Pin!
+    var imagesURLs = [URL]()
 
     var onDelete: (() -> Void)?
 
@@ -32,7 +33,8 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         computeFlowLayout()
 
         gateway.getLocationAlbum(latitude: selectedPin.latitude, longitude: selectedPin.longitude) { imagesURLs in
-            print(imagesURLs)
+            self.imagesURLs = imagesURLs
+            self.photosCollectionView.reloadData()
         }
     }
 
@@ -96,13 +98,27 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
     // MARK: - Collection View Delegate
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 25
+        return imagesURLs.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionViewCell", for: indexPath) as! PhotoCollectionViewCell
 
+        // TODO: Just for testing purposes. Do the right implementation!
         cell.photoImageView.image = UIImage(named: "VirtualTourist_120")
+        let task = URLSession.shared.dataTask(with: imagesURLs[indexPath.row]) {
+            (data, response, error) in
+            guard let data = data else {
+                print("No data returned or there was an error.")
+                return
+            }
+
+            let downloadedImage = UIImage(data: data)
+            DispatchQueue.main.async {
+                cell.photoImageView.image = downloadedImage
+            }
+        }
+        task.resume()
 
         return cell
     }
