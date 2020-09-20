@@ -30,6 +30,7 @@ struct FlickrGateway {
 
         static let getInfoMethodValue = "flickr.photos.getInfo"
         static let photoIdParam = "photo_id"
+        static let photoSizeParam = "q" // Large Square
 
         static let formatValue = "json"
         static let noJsonCallBackValue = 1
@@ -95,11 +96,52 @@ struct FlickrGateway {
     }
 
     func getLocationAlbum(latitude: Double, longitude: Double) {
-        print(Endpoints.getLocationAlbum(latitude, longitude).url)
+        let request = URLRequest(url: Endpoints.getLocationAlbum(latitude, longitude).url)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                let photos = json["photos"] as? [String: Any],
+                let pages = photos["pages"] as? Int,
+                let photo = photos["photo"] as? [[String: Any]]
+            else {
+                print("Invalid JSON")
+                return
+            }
+
+            let ids: [String] = photo.compactMap {
+                $0["id"] as? String
+            }
+
+            print("Pages: \(pages)")
+            print("IDs: \(ids)")
+        }
+        task.resume()
     }
 
     func getImage(id: String) {
-        print(Endpoints.getImage(id).url)
+        let request = URLRequest(url: Endpoints.getImage(id).url)
+        let session = URLSession.shared
+        let task = session.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                let photo = json["photo"] as? [String: Any],
+                let farm = photo["farm"] as? Int,
+                let server = photo["server"] as? String,
+                let secret = photo["secret"] as? String
+            else {
+                print("Invalid JSON")
+                return
+            }
+
+            let imageUrl = self.createImageURL(id: id, farm: farm, server: server, secret: secret)
+            print(imageUrl)
+        }
+        task.resume()
     }
-    
+
+    private func createImageURL(id: String, farm: Int, server: String, secret: String) -> URL {
+        let urlString = "https://farm\(farm).staticflickr.com/\(server)/\(id)_\(secret)_\(Endpoints.photoSizeParam).jpg"
+        return URL(string: urlString)!
+    }
 }
