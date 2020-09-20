@@ -9,6 +9,40 @@
 import Foundation
 
 class FlickrGateway {
+    static let scheme = "https"
+    static let host = "www.flickr.com"
+    static let path = "/services/rest"
+
+    static let apiKeyParam = "api_key"
+    static let methodParam = "method"
+    static let latitudeParam = "lat"
+    static let longitudeParam = "lon"
+    static let radiusParam = "radius"
+    static let perPageParam = "per_page"
+    static let pageParam = "page"
+    static let formatParam = "format"
+    static let noJsonCallBackParam = "nojsoncallback"
+
+    static let searchMethodValue = "flickr.photos.search"
+    static let radiusValue = 10
+    static let perPageValue = 25
+
+    static let getInfoMethodValue = "flickr.photos.getInfo"
+    static let photoIdParam = "photo_id"
+    static let photoSizeParam = "q" // Large Square
+
+    static let formatValue = "json"
+    static let noJsonCallBackValue = 1
+
+    static var apiKey: String {
+        if let path = Bundle.main.path(forResource: "Keys", ofType: "plist") {
+            if let keys = NSDictionary(contentsOfFile: path) as? [String : AnyObject] {
+                return (keys["FlickrApiKey"] as? String) ?? ""
+            }
+        }
+
+        return ""
+    }
 
     private var totalPages = 0
     private var randomPage: Int {
@@ -19,95 +53,9 @@ class FlickrGateway {
         1 + (totalPages > 0 ? Int(arc4random()) % 100 : totalPages)
     }
 
-    enum Endpoints {
-        static let scheme = "https"
-        static let host = "www.flickr.com"
-        static let path = "/services/rest"
-
-        static let apiKeyParam = "api_key"
-        static let methodParam = "method"
-        static let latitudeParam = "lat"
-        static let longitudeParam = "lon"
-        static let radiusParam = "radius"
-        static let perPageParam = "per_page"
-        static let pageParam = "page"
-        static let formatParam = "format"
-        static let noJsonCallBackParam = "nojsoncallback"
-
-        static let searchMethodValue = "flickr.photos.search"
-        static let radiusValue = 10
-        static let perPageValue = 25
-
-        static let getInfoMethodValue = "flickr.photos.getInfo"
-        static let photoIdParam = "photo_id"
-        static let photoSizeParam = "q" // Large Square
-
-        static let formatValue = "json"
-        static let noJsonCallBackValue = 1
-
-        static var apiKey: String {
-            if let path = Bundle.main.path(forResource: "Keys", ofType: "plist") {
-                if let keys = NSDictionary(contentsOfFile: path) as? [String : AnyObject] {
-                    return (keys["FlickrApiKey"] as? String) ?? ""
-                }
-            }
-
-            return ""
-        }
-
-        case getLocationAlbum(Double, Double, Int)
-        case getImage(String)
-
-        var url: URL {
-            switch self {
-            case .getLocationAlbum(let latitude, let longitude, let page): return makeAlbumURL(latitude: latitude, longitude: longitude, page: page)
-            case .getImage(let id): return makeImageURL(id: id)
-            }
-        }
-
-        private func makeAlbumURL(latitude: Double, longitude: Double, page: Int) -> URL {
-            var urlComponent = URLComponents()
-
-            urlComponent.scheme = Endpoints.scheme
-            urlComponent.host = Endpoints.host
-            urlComponent.path = Endpoints.path
-
-            urlComponent.queryItems = [
-                URLQueryItem(name: Endpoints.methodParam, value: Endpoints.searchMethodValue),
-                URLQueryItem(name: Endpoints.apiKeyParam, value: Endpoints.apiKey),
-                URLQueryItem(name: Endpoints.latitudeParam, value: "\(latitude)"),
-                URLQueryItem(name: Endpoints.longitudeParam, value: "\(longitude)"),
-                URLQueryItem(name: Endpoints.radiusParam, value: "\(Endpoints.radiusValue)"),
-                URLQueryItem(name: Endpoints.perPageParam, value: "\(Endpoints.perPageValue)"),
-                URLQueryItem(name: Endpoints.pageParam, value: "\(page)"),
-                URLQueryItem(name: Endpoints.formatParam, value: Endpoints.formatValue),
-                URLQueryItem(name: Endpoints.noJsonCallBackParam, value: "\(Endpoints.noJsonCallBackValue)")
-            ]
-            print("Page: \(page)")
-            return urlComponent.url!
-        }
-
-        private func makeImageURL(id: String) -> URL {
-            var urlComponent = URLComponents()
-
-            urlComponent.scheme = Endpoints.scheme
-            urlComponent.host = Endpoints.host
-            urlComponent.path = Endpoints.path
-
-            urlComponent.queryItems = [
-                URLQueryItem(name: Endpoints.methodParam, value: Endpoints.getInfoMethodValue),
-                URLQueryItem(name: Endpoints.apiKeyParam, value: Endpoints.apiKey),
-                URLQueryItem(name: Endpoints.photoIdParam, value: "\(id)"),
-                URLQueryItem(name: Endpoints.formatParam, value: Endpoints.formatValue),
-                URLQueryItem(name: Endpoints.noJsonCallBackParam, value: "\(Endpoints.noJsonCallBackValue)")
-            ]
-
-            return urlComponent.url!
-        }
-    }
-
-    func getLocationAlbum(latitude: Double, longitude: Double) {
-        let request = URLRequest(url: Endpoints.getLocationAlbum(latitude, longitude, randomPage).url)
+    func getLocationAlbum(latitude: Double, longitude: Double, completion: @escaping ([URL]) -> Void) {
+        let url = getAlbumURL(latitude: latitude, longitude: longitude)
+        let request = URLRequest(url: url)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             guard let data = data,
@@ -117,44 +65,52 @@ class FlickrGateway {
                 let photo = photos["photo"] as? [[String: Any]]
             else {
                 print("Invalid JSON")
+                completion([])
                 return
             }
 
-            let ids: [String] = photo.compactMap {
-                $0["id"] as? String
+            let imagesURLs: [URL] = photo.compactMap {
+                self.getImageURL(photo: $0)
             }
 
             self.totalPages = pages
 
-            print("Pages: \(pages)")
-            print("IDs: \(ids)")
+            completion(imagesURLs)
         }
         task.resume()
     }
 
-    func getImage(id: String) {
-        let request = URLRequest(url: Endpoints.getImage(id).url)
-        let session = URLSession.shared
-        let task = session.dataTask(with: request) { data, response, error in
-            guard let data = data,
-                let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                let photo = json["photo"] as? [String: Any],
-                let farm = photo["farm"] as? Int,
-                let server = photo["server"] as? String,
-                let secret = photo["secret"] as? String
-            else {
-                print("Invalid JSON")
-                return
-            }
+    private func getAlbumURL(latitude: Double, longitude: Double) -> URL {
+        var urlComponent = URLComponents()
 
-            let imageUrl = self.createImageURL(id: id, farm: farm, server: server, secret: secret)
-            print(imageUrl)
-        }
-        task.resume()
+        urlComponent.scheme = FlickrGateway.scheme
+        urlComponent.host = FlickrGateway.host
+        urlComponent.path = FlickrGateway.path
+
+        urlComponent.queryItems = [
+            URLQueryItem(name: FlickrGateway.methodParam, value: FlickrGateway.searchMethodValue),
+            URLQueryItem(name: FlickrGateway.apiKeyParam, value: FlickrGateway.apiKey),
+            URLQueryItem(name: FlickrGateway.latitudeParam, value: "\(latitude)"),
+            URLQueryItem(name: FlickrGateway.longitudeParam, value: "\(longitude)"),
+            URLQueryItem(name: FlickrGateway.radiusParam, value: "\(FlickrGateway.radiusValue)"),
+            URLQueryItem(name: FlickrGateway.perPageParam, value: "\(FlickrGateway.perPageValue)"),
+            URLQueryItem(name: FlickrGateway.pageParam, value: "\(randomPage)"),
+            URLQueryItem(name: FlickrGateway.formatParam, value: FlickrGateway.formatValue),
+            URLQueryItem(name: FlickrGateway.noJsonCallBackParam, value: "\(FlickrGateway.noJsonCallBackValue)")
+        ]
+
+        return urlComponent.url!
     }
 
-    private func createImageURL(id: String, farm: Int, server: String, secret: String) -> URL {
-        let urlString = "https://farm\(farm).staticflickr.com/\(server)/\(id)_\(secret)_\(Endpoints.photoSizeParam).jpg"
+    private func getImageURL(photo: [String: Any]) -> URL? {
+        guard let id = photo["id"] as? String,
+            let farm = photo["farm"] as? Int,
+            let server = photo["server"] as? String,
+            let secret = photo["secret"] as? String else {
+                return nil
+        }
+
+        let urlString = "https://farm\(farm).staticflickr.com/\(server)/\(id)_\(secret)_\(FlickrGateway.photoSizeParam).jpg"
         return URL(string: urlString)!
     }
 }
