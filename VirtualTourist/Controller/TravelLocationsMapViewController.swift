@@ -20,10 +20,15 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     var currentMapRegion: MKCoordinateRegion?
     var selectedPin: Pin?
 
+    var gateway: FlickrGateway!
+
     // MARK: - Life Cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        gateway.getLocationAlbum(latitude: 38.707386065604652, longitude: -9.1548092420383398)
+        gateway.getImage(id: "50340310746")
 
         mapView.delegate = self
 

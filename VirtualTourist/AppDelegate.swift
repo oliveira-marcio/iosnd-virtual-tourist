@@ -22,6 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let navigationController = window?.rootViewController as! UINavigationController
         let travelLocationsMapViewController = navigationController.topViewController as! TravelLocationsMapViewController
         travelLocationsMapViewController.dataController = dataController
+        travelLocationsMapViewController.gateway = FlickrGateway()
 
         return true
     }
