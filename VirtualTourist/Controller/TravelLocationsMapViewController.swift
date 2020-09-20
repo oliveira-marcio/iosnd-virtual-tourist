@@ -15,13 +15,13 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     @IBOutlet weak var mapView: MKMapView!
 
     var dataController: DataController!
+    var gateway: FlickrGateway!
+
     var fetchedResultsController: NSFetchedResultsController<Pin>!
 
     var currentMapRegion: MKCoordinateRegion?
     var selectedPin: Pin?
-
-    var gateway: FlickrGateway!
-
+    
     // MARK: - Life Cycle
 
     override func viewDidLoad() {
@@ -34,9 +34,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
 
     override func viewWillAppear(_ animated: Bool) {
         setupFetchedResultsController()
-        gateway.getLocationAlbum(latitude: 38.707386065604652, longitude: -9.1548092420383398) { imagesURLs in
-            print(imagesURLs)
-        }
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -122,6 +119,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
+        photoAlbumViewController.gateway = gateway
         photoAlbumViewController.selectedPin = selectedPin
 
         photoAlbumViewController.onDelete = { [weak self] in

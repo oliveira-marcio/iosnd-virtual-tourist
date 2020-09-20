@@ -15,6 +15,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
 
+    var gateway: FlickrGateway!
     var selectedPin: Pin!
 
     var onDelete: (() -> Void)?
@@ -29,6 +30,10 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         
         loadMapSelectedPin()
         computeFlowLayout()
+
+        gateway.getLocationAlbum(latitude: selectedPin.latitude, longitude: selectedPin.longitude) { imagesURLs in
+            print(imagesURLs)
+        }
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
