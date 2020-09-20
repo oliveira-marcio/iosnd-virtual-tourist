@@ -8,7 +8,16 @@
 
 import Foundation
 
-struct FlickrGateway {
+class FlickrGateway {
+
+    private var totalPages = 0
+    private var randomPage: Int {
+        // For some reason Flickr API always returns the first page when the requested page is big,
+        // even if it is still smaller than returned total pages, so the randomization is lost.
+        // So I've opted to use a fixed value to limit the requested page and ensure the randomization
+        // Similar issue: https://stackoverflow.com/questions/44991024/python-flickrapi-search-photos-returns-the-same-picture-on-every-page
+        1 + (totalPages > 0 ? Int(arc4random()) % 100 : totalPages)
+    }
 
     enum Endpoints {
         static let scheme = "https"
@@ -21,6 +30,7 @@ struct FlickrGateway {
         static let longitudeParam = "lon"
         static let radiusParam = "radius"
         static let perPageParam = "per_page"
+        static let pageParam = "page"
         static let formatParam = "format"
         static let noJsonCallBackParam = "nojsoncallback"
 
@@ -45,17 +55,17 @@ struct FlickrGateway {
             return ""
         }
 
-        case getLocationAlbum(Double, Double)
+        case getLocationAlbum(Double, Double, Int)
         case getImage(String)
 
         var url: URL {
             switch self {
-            case .getLocationAlbum(let latitude, let longitude): return makeAlbumURL(latitude: latitude, longitude: longitude)
+            case .getLocationAlbum(let latitude, let longitude, let page): return makeAlbumURL(latitude: latitude, longitude: longitude, page: page)
             case .getImage(let id): return makeImageURL(id: id)
             }
         }
 
-        private func makeAlbumURL(latitude: Double, longitude: Double) -> URL {
+        private func makeAlbumURL(latitude: Double, longitude: Double, page: Int) -> URL {
             var urlComponent = URLComponents()
 
             urlComponent.scheme = Endpoints.scheme
@@ -69,10 +79,11 @@ struct FlickrGateway {
                 URLQueryItem(name: Endpoints.longitudeParam, value: "\(longitude)"),
                 URLQueryItem(name: Endpoints.radiusParam, value: "\(Endpoints.radiusValue)"),
                 URLQueryItem(name: Endpoints.perPageParam, value: "\(Endpoints.perPageValue)"),
+                URLQueryItem(name: Endpoints.pageParam, value: "\(page)"),
                 URLQueryItem(name: Endpoints.formatParam, value: Endpoints.formatValue),
                 URLQueryItem(name: Endpoints.noJsonCallBackParam, value: "\(Endpoints.noJsonCallBackValue)")
             ]
-
+            print("Page: \(page)")
             return urlComponent.url!
         }
 
@@ -96,7 +107,7 @@ struct FlickrGateway {
     }
 
     func getLocationAlbum(latitude: Double, longitude: Double) {
-        let request = URLRequest(url: Endpoints.getLocationAlbum(latitude, longitude).url)
+        let request = URLRequest(url: Endpoints.getLocationAlbum(latitude, longitude, randomPage).url)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             guard let data = data,
@@ -112,6 +123,8 @@ struct FlickrGateway {
             let ids: [String] = photo.compactMap {
                 $0["id"] as? String
             }
+
+            self.totalPages = pages
 
             print("Pages: \(pages)")
             print("IDs: \(ids)")

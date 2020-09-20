@@ -27,9 +27,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        gateway.getLocationAlbum(latitude: 38.707386065604652, longitude: -9.1548092420383398)
-        gateway.getImage(id: "50340310746")
-
         mapView.delegate = self
 
         loadMapRegion()
@@ -37,6 +34,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
 
     override func viewWillAppear(_ animated: Bool) {
         setupFetchedResultsController()
+        gateway.getLocationAlbum(latitude: 38.707386065604652, longitude: -9.1548092420383398)
+        gateway.getImage(id: "50340310746")
     }
 
     override func viewDidDisappear(_ animated: Bool) {
