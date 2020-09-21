@@ -32,10 +32,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         loadMapSelectedPin()
         computeFlowLayout()
 
-        gateway.getLocationAlbum(latitude: selectedPin.latitude, longitude: selectedPin.longitude) { imagesURLs in
-            self.imagesURLs = imagesURLs
-            self.photosCollectionView.reloadData()
-        }
+        requestNewAlbumCollection()
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -64,6 +61,16 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         flowLayout.minimumLineSpacing = space
         flowLayout.itemSize = CGSize(width: dimension, height: dimension)
     }
+
+    // MARK: - Request Nwe Album Collection From API
+
+    private func requestNewAlbumCollection() {
+        gateway.getLocationAlbum(latitude: selectedPin.latitude, longitude: selectedPin.longitude) { imagesURLs in
+            self.imagesURLs = imagesURLs
+            self.photosCollectionView.reloadData()
+        }
+    }
+
 
     // MARK: - Load Map Selected Pin from TravelLocationMapViewController
 
@@ -141,5 +148,9 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         alert.addAction(cancelAction)
         alert.addAction(deleteAction)
         present(alert, animated: true, completion: nil)
+    }
+
+    @IBAction func getNewAlbumCollection(_ sender: Any) {
+        requestNewAlbumCollection()
     }
 }

@@ -123,7 +123,11 @@
                                 </constraints>
                                 <items>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="Slx-9p-WIT"/>
-                                    <barButtonItem title="New Collection" id="Nit-6s-dcY"/>
+                                    <barButtonItem title="New Collection" id="Nit-6s-dcY">
+                                        <connections>
+                                            <action selector="getNewAlbumCollection:" destination="SSo-aL-xua" id="UJ3-gy-e7j"/>
+                                        </connections>
+                                    </barButtonItem>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="Qlf-Cl-zZq"/>
                                 </items>
                             </toolbar>
