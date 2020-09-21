@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class FlickrGateway {
     static let scheme = "https"
@@ -51,6 +52,23 @@ class FlickrGateway {
         // So I've opted to use a fixed value to limit the requested page and ensure the randomization
         // Similar issue: https://stackoverflow.com/questions/44991024/python-flickrapi-search-photos-returns-the-same-picture-on-every-page
         1 + (totalPages > 0 ? Int(arc4random()) % 100 : totalPages)
+    }
+
+    func getPhoto(from url: URL, completion: @escaping (UIImage?) -> Void) {
+        let task = URLSession.shared.dataTask(with: url) {
+            (data, response, error) in
+            guard let data = data else {
+                print("No data returned or there was an error.")
+                completion(nil)
+                return
+            }
+
+            let downloadedImage = UIImage(data: data)
+            DispatchQueue.main.async {
+                completion(downloadedImage)
+            }
+        }
+        task.resume()
     }
 
     func getLocationAlbum(latitude: Double, longitude: Double, completion: @escaping ([URL]) -> Void) {

@@ -113,19 +113,9 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
 
         // TODO: Just for testing purposes. Do the right implementation!
         cell.photoImageView.image = UIImage(named: "VirtualTourist_120")
-        let task = URLSession.shared.dataTask(with: imagesURLs[indexPath.row]) {
-            (data, response, error) in
-            guard let data = data else {
-                print("No data returned or there was an error.")
-                return
-            }
-
-            let downloadedImage = UIImage(data: data)
-            DispatchQueue.main.async {
-                cell.photoImageView.image = downloadedImage
-            }
+        gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
+            cell.photoImageView.image = image
         }
-        task.resume()
 
         return cell
     }
