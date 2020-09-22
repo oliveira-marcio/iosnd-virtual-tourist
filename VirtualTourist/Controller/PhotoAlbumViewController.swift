@@ -82,9 +82,15 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
             dataController: dataController,
             pin: selectedPin,
             gateway: gateway,
-            collectionView: photosCollectionView)
+            collectionView: photosCollectionView,
+            configure: configureCollectionViewCell(cell:image:)
+        )
 
         photosCollectionView.dataSource = photoDataSource
+    }
+
+    private func configureCollectionViewCell(cell: PhotoCollectionViewCell, image: UIImage?) {
+        cell.photoImageView.image = image ?? UIImage(named: "VirtualTourist_120")
     }
 
     // MARK: - Map View Delegate

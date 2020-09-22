@@ -16,6 +16,7 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     private var gateway: FlickrGateway!
     private var collectionView: UICollectionView!
     private var pin: Pin!
+    private var configureFunction: (PhotoCollectionViewCell, UIImage?) -> Void
 
     private var imagesURLs = [URL]()
 
@@ -23,7 +24,8 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         dataController: DataController,
         pin: Pin,
         gateway: FlickrGateway,
-        collectionView: UICollectionView
+        collectionView: UICollectionView,
+        configure: @escaping (PhotoCollectionViewCell, UIImage?) -> Void
     ) {
         viewManagedObjectContext = dataController.viewContext
         backgroundManagedObjectContext = dataController.backgroundContext
@@ -39,6 +41,7 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         self.collectionView = collectionView
         self.gateway = gateway
         self.pin = pin
+        self.configureFunction = configure
 
         super.init()
 
@@ -79,9 +82,9 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionViewCell", for: indexPath) as! PhotoCollectionViewCell
 
         // TODO: Just for testing purposes. Do the right implementation!
-        cell.photoImageView.image = UIImage(named: "VirtualTourist_120")
+        configureFunction(cell, nil)
         gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
-            cell.photoImageView.image = image
+            self.configureFunction(cell, image)
         }
 
         return cell
