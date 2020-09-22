@@ -19,7 +19,6 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
     var photoDataSource: PhotoDataSource!
     var gateway: FlickrGateway!
     var selectedPin: Pin!
-    var imagesURLs = [URL]()
 
     var onDelete: (() -> Void)?
 

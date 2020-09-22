@@ -7,7 +7,6 @@
 //
 
 import CoreData
-import UIKit
 
 class PinDataSource: NSObject, NSFetchedResultsControllerDelegate {
     private var viewManagedObjectContext: NSManagedObjectContext!

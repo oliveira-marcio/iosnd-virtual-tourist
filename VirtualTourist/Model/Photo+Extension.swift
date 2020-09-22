@@ -6,7 +6,6 @@
 //  Copyright © 2020 Márcio Oliveira. All rights reserved.
 //
 
-import Foundation
 import CoreData
 
 extension Photo {

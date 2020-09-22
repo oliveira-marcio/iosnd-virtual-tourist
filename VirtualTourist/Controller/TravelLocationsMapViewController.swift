@@ -20,7 +20,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     var currentMapRegion: MKCoordinateRegion?
     var selectedPin: Pin?
-    var pins = [Pin]()
     
     // MARK: - Life Cycle
 
@@ -29,24 +28,27 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
         mapView.delegate = self
 
-        loadMapRegion()
+        currentMapRegion = MapRegionDataSource.loadMapRegion()
+
+        if let currentMapRegion = currentMapRegion {
+            mapView.setRegion(mapView.regionThatFits(currentMapRegion), animated: true)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
-        setupFetchedResultsController()
+        setupPinDataSource()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        saveMapRegion()
+        MapRegionDataSource.saveMapRegion(currentMapRegion)
         pinDataSource.releaseFetchedResultsController()
     }
 
     // MARK: - Setup Fetched Results Controller
 
-    private func setupFetchedResultsController() {
+    private func setupPinDataSource() {
         pinDataSource = PinDataSource(dataController: dataController, onUpdate: { pins in
-            self.pins = pins
             var annotations = [MKPointAnnotation]()
 
             for pin in pins {
@@ -123,35 +125,5 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
                 self?.navigationController?.popViewController(animated: true)
             }
         }
-    }
-
-    // MARK: - Map Region Data Handling
-
-    func saveMapRegion() {
-        UserDefaults.standard.set(currentMapRegion?.center.latitude, forKey: "mapRegionCenterLatitude")
-        UserDefaults.standard.set(currentMapRegion?.center.longitude, forKey: "mapRegionCenterLongitude")
-        UserDefaults.standard.set(currentMapRegion?.span.latitudeDelta, forKey: "mapRegionLatitudeDelta")
-        UserDefaults.standard.set(currentMapRegion?.span.longitudeDelta, forKey: "mapRegionLongitudeDelta")
-    }
-
-    private func loadMapRegion() {
-        let centerLatitude = getCoordinatesFromPersistence(forKey: "mapRegionCenterLatitude", defaultValue: 38.707386065604652)
-        let centerLongitude = getCoordinatesFromPersistence(forKey: "mapRegionCenterLongitude", defaultValue: -9.1548092420383398)
-        let coordinate = CLLocationCoordinate2D(latitude: centerLatitude, longitude: centerLongitude)
-
-        let latitudeDelta = getCoordinatesFromPersistence(forKey: "mapRegionLatitudeDelta", defaultValue: 0.088252179893437699)
-        let longitudeDelta = getCoordinatesFromPersistence(forKey: "mapRegionLongitudeDelta", defaultValue: 0.088252179893437699)
-        let span = MKCoordinateSpan(latitudeDelta: latitudeDelta, longitudeDelta: longitudeDelta)
-
-        currentMapRegion = MKCoordinateRegion(center: coordinate, span: span)
-
-        if let currentMapRegion = currentMapRegion {
-            mapView.setRegion(mapView.regionThatFits(currentMapRegion), animated: true)
-        }
-    }
-
-    private func getCoordinatesFromPersistence(forKey: String, defaultValue: Float) -> CLLocationDegrees {
-        let coordinate = UserDefaults.standard.float(forKey: forKey)
-        return CLLocationDegrees(coordinate == 0 ? defaultValue : coordinate)
     }
 }

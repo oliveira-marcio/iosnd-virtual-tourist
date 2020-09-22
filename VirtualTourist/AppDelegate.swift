@@ -44,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func saveMapRegion() {
-        travelLocationsMapViewController?.saveMapRegion()
+        MapRegionDataSource.saveMapRegion(travelLocationsMapViewController.currentMapRegion)
     }
 
     private func saveViewContext() {
