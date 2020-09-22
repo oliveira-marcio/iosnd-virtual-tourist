@@ -21,6 +21,7 @@
 		9CF5827225173DA5002A0805 /* FlickrGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF5827125173DA5002A0805 /* FlickrGateway.swift */; };
 		9CF58276251741D0002A0805 /* Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9CF58275251741D0002A0805 /* Keys.plist */; };
 		9CF5827A251A3D3F002A0805 /* Photo+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF58279251A3D3F002A0805 /* Photo+Extension.swift */; };
+		9CF5827C251A5463002A0805 /* PinDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF5827B251A5463002A0805 /* PinDataSource.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		9CF5827125173DA5002A0805 /* FlickrGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickrGateway.swift; sourceTree = "<group>"; };
 		9CF58275251741D0002A0805 /* Keys.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Keys.plist; sourceTree = "<group>"; };
 		9CF58279251A3D3F002A0805 /* Photo+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+Extension.swift"; sourceTree = "<group>"; };
+		9CF5827B251A5463002A0805 /* PinDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinDataSource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,7 @@
 				9CF58279251A3D3F002A0805 /* Photo+Extension.swift */,
 				9CF5826B2515E2F5002A0805 /* DataController.swift */,
 				9CF5827125173DA5002A0805 /* FlickrGateway.swift */,
+				9CF5827B251A5463002A0805 /* PinDataSource.swift */,
 				9CF5826F25173CC5002A0805 /* PhotoDataSource.swift */,
 			);
 			path = Model;
@@ -197,6 +200,7 @@
 			files = (
 				9CF5826C2515E2F5002A0805 /* DataController.swift in Sources */,
 				9CF5824D250FF684002A0805 /* TravelLocationsMapViewController.swift in Sources */,
+				9CF5827C251A5463002A0805 /* PinDataSource.swift in Sources */,
 				9CF582652513C39E002A0805 /* PhotoCollectionViewCell.swift in Sources */,
 				9CF5826E251601F4002A0805 /* Pin+Extension.swift in Sources */,
 				9CF5827A251A3D3F002A0805 /* Photo+Extension.swift in Sources */,

@@ -10,17 +10,17 @@ import UIKit
 import MapKit
 import CoreData
 
-class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsControllerDelegate {
+class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
 
     var dataController: DataController!
+    var pinDataSource: PinDataSource!
     var gateway: FlickrGateway!
-
-    var fetchedResultsController: NSFetchedResultsController<Pin>!
 
     var currentMapRegion: MKCoordinateRegion?
     var selectedPin: Pin?
+    var pins = [Pin]()
     
     // MARK: - Life Cycle
 
@@ -39,26 +39,25 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         saveMapRegion()
-        fetchedResultsController = nil
+        pinDataSource.releaseFetchedResultsController()
     }
 
     // MARK: - Setup Fetched Results Controller
 
     private func setupFetchedResultsController() {
-        let fetchRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
+        pinDataSource = PinDataSource(dataController: dataController, onUpdate: { pins in
+            self.pins = pins
+            var annotations = [MKPointAnnotation]()
 
-        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
-        fetchRequest.sortDescriptors = [sortDescriptor]
+            for pin in pins {
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
+                annotations.append(annotation)
+            }
 
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: "pins")
-
-        fetchedResultsController.delegate = self
-        do {
-            try fetchedResultsController.performFetch()
-            loadMapPins()
-        } catch {
-            fatalError("The fetch could not be performed: \(error.localizedDescription)")
-        }
+            self.mapView.removeAnnotations(self.mapView.annotations)
+            self.mapView.addAnnotations(annotations)
+        })
     }
 
     // MARK: - Map View Delegate
@@ -84,17 +83,8 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let selectedAnnotation = mapView.selectedAnnotations.first,
-            let pins = fetchedResultsController.fetchedObjects,
-            let selectedPin = pins.first(where: {
-                let expectedLat = selectedAnnotation.coordinate.latitude
-                let currentLat = $0.latitude
-
-                let expectedLong = selectedAnnotation.coordinate.longitude
-                let currentLong = $0.longitude
-
-                return expectedLat == currentLat && expectedLong == currentLong
-            }) else { return }
-
+            let selectedPin = pinDataSource.getPin(latitude: selectedAnnotation.coordinate.latitude, longitude: selectedAnnotation.coordinate.longitude)
+            else { return }
 
         self.selectedPin = selectedPin
         performSegue(withIdentifier: "showPhotoAlbum", sender: nil)
@@ -102,7 +92,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
     }
 
     func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {
-       currentMapRegion = mapView.region
+        currentMapRegion = mapView.region
     }
 
     // MARK: - Actions
@@ -111,7 +101,11 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         if gestureRecognizer.state == .began {
             let touchPoint = gestureRecognizer.location(in: mapView)
             let coordinates = mapView.convert(touchPoint, toCoordinateFrom: mapView)
-            addMapPin(latitude: coordinates.latitude, longitude: coordinates.longitude)
+
+            // Workaround to retrieve map control after long press gesture
+            mapView.setCenter(coordinates, animated: true)
+
+            pinDataSource.addPin(latitude: coordinates.latitude, longitude: coordinates.longitude)
         }
     }
 
@@ -125,46 +119,13 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
 
         photoAlbumViewController.onDelete = { [weak self] in
             if let selectedPin = self?.selectedPin {
-                self?.deleteMapPin(selectedPin)
+                self?.pinDataSource.deletePin(selectedPin)
                 self?.navigationController?.popViewController(animated: true)
             }
         }
     }
 
-    // MARK: - Map Data Handling
-
-    private func loadMapPins() {
-        guard let pins = fetchedResultsController.fetchedObjects else { return }
-
-        var annotations = [MKPointAnnotation]()
-
-        for pin in pins {
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)
-            annotations.append(annotation)
-        }
-
-        mapView.removeAnnotations(mapView.annotations)
-        mapView.addAnnotations(annotations)
-    }
-
-    private func addMapPin(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
-        // Workaround to retrieve map control after long press gesture
-        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-        mapView.setCenter(coordinate, animated: true)
-
-        let pin = Pin(context: dataController.viewContext)
-        pin.latitude = latitude
-        pin.longitude = longitude
-        pin.creationDate = Date()
-
-        try? dataController.viewContext.save()
-    }
-
-    private func deleteMapPin(_ pin: Pin) {
-        dataController.viewContext.delete(pin)
-        try? dataController.viewContext.save()
-    }
+    // MARK: - Map Region Data Handling
 
     func saveMapRegion() {
         UserDefaults.standard.set(currentMapRegion?.center.latitude, forKey: "mapRegionCenterLatitude")
@@ -193,11 +154,4 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         let coordinate = UserDefaults.standard.float(forKey: forKey)
         return CLLocationDegrees(coordinate == 0 ? defaultValue : coordinate)
     }
-
-    // MARK: - Fetched Results Controller Delegate
-
-    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        loadMapPins()
-    }
 }
-
