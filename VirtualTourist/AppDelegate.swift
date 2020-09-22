@@ -14,15 +14,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     let dataController = DataController(modelName: "VirtualTourist")
+    var travelLocationsMapViewController: TravelLocationsMapViewController!
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         dataController.load()
 
-        let navigationController = window?.rootViewController as! UINavigationController
-        let travelLocationsMapViewController = navigationController.topViewController as! TravelLocationsMapViewController
-        travelLocationsMapViewController.dataController = dataController
-        travelLocationsMapViewController.gateway = FlickrGateway()
+        injectDependencies()
 
         return true
     }
@@ -37,9 +35,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         saveViewContext()
     }
 
-    private func saveMapRegion() {
+    private func injectDependencies() {
         let navigationController = window?.rootViewController as! UINavigationController
-        let travelLocationsMapViewController = navigationController.topViewController as? TravelLocationsMapViewController
+        travelLocationsMapViewController = navigationController.topViewController as? TravelLocationsMapViewController
+
+        travelLocationsMapViewController.dataController = dataController
+        travelLocationsMapViewController.gateway = FlickrGateway()
+    }
+
+    private func saveMapRegion() {
         travelLocationsMapViewController?.saveMapRegion()
     }
 
