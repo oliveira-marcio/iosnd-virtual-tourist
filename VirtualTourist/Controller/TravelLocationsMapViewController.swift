@@ -121,6 +121,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, NSF
         let photoAlbumViewController = segue.destination as! PhotoAlbumViewController
         photoAlbumViewController.gateway = gateway
         photoAlbumViewController.selectedPin = selectedPin
+        photoAlbumViewController.dataController = dataController
 
         photoAlbumViewController.onDelete = { [weak self] in
             if let selectedPin = self?.selectedPin {

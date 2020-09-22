@@ -9,12 +9,14 @@
 import UIKit
 import MapKit
 
-class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectionViewDataSource {
+class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
 
+    var dataController: DataController!
+    var photoDataSource: PhotoDataSource!
     var gateway: FlickrGateway!
     var selectedPin: Pin!
     var imagesURLs = [URL]()
@@ -27,16 +29,19 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         super.viewDidLoad()
 
         mapView.delegate = self
-        photosCollectionView.dataSource = self
-        
+
         loadMapSelectedPin()
         computeFlowLayout()
-
-        requestNewAlbumCollection()
+        setupPhotoDataSource()
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         computeFlowLayout()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        photoDataSource.releaseFetchedResultsController()
     }
 
     // MARK: - Compute Photo Album Flow Layout
@@ -62,16 +67,6 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         flowLayout.itemSize = CGSize(width: dimension, height: dimension)
     }
 
-    // MARK: - Request Nwe Album Collection From API
-
-    private func requestNewAlbumCollection() {
-        gateway.getLocationAlbum(latitude: selectedPin.latitude, longitude: selectedPin.longitude) { imagesURLs in
-            self.imagesURLs = imagesURLs
-            self.photosCollectionView.reloadData()
-        }
-    }
-
-
     // MARK: - Load Map Selected Pin from TravelLocationMapViewController
 
     private func loadMapSelectedPin() {
@@ -79,6 +74,18 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         annotation.coordinate = CLLocationCoordinate2D(latitude: selectedPin.latitude, longitude: selectedPin.longitude)
 
         self.mapView.showAnnotations([annotation], animated: false)
+    }
+
+    // MARK: - Setup Photo Data Source
+
+    func setupPhotoDataSource() {
+        photoDataSource = PhotoDataSource(
+            dataController: dataController,
+            pin: selectedPin,
+            gateway: gateway,
+            collectionView: photosCollectionView)
+
+        photosCollectionView.dataSource = photoDataSource
     }
 
     // MARK: - Map View Delegate
@@ -102,24 +109,6 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
         return pinView
     }
 
-    // MARK: - Collection View Delegate
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return imagesURLs.count
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionViewCell", for: indexPath) as! PhotoCollectionViewCell
-
-        // TODO: Just for testing purposes. Do the right implementation!
-        cell.photoImageView.image = UIImage(named: "VirtualTourist_120")
-        gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
-            cell.photoImageView.image = image
-        }
-
-        return cell
-    }
-
     // MARK: - Actions
 
     @IBAction func deleteLocation(_ sender: Any) {
@@ -141,6 +130,6 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectio
     }
 
     @IBAction func getNewAlbumCollection(_ sender: Any) {
-        requestNewAlbumCollection()
+        photoDataSource.getNewAlbumCollection()
     }
 }
