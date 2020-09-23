@@ -19,7 +19,7 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     private var configureFunction: (PhotoCollectionViewCell, Data?) -> Void
     private var isFirstLoading = true
     private var isBatchInsert = false
-    private var isBatchDelete = false
+    var isBatchDelete = false
 
     init(
         dataController: DataController,
@@ -98,7 +98,6 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
             }
 
             try? self.viewManagedObjectContext.save()
-            self.isBatchDelete = false
         }
     }
 
@@ -120,7 +119,6 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
             } catch {
                 completion([])
             }
-            self.isBatchInsert = false
         }
     }
 
@@ -151,11 +149,11 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     // MARK: - Collection View data source
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return fetchedResultsController.sections?.count ?? 1
+        return fetchedResultsController?.sections?.count ?? 1
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return fetchedResultsController.sections?[section].numberOfObjects ?? 0
+        return fetchedResultsController?.sections?[section].numberOfObjects ?? 0
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -184,6 +182,8 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
             operation.start()
         }
 
+        isBatchInsert = false
+        isBatchDelete = false
         operationQueue = nil
     }
 

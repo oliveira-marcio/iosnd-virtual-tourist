@@ -139,6 +139,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
             guard let strongSelf = self else { return }
+            strongSelf.photoDataSource.isBatchDelete = true
             strongSelf.onDelete?()
         }
 
