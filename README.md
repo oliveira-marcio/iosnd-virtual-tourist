@@ -41,7 +41,7 @@ This project consists of working with [Core Data](https://developer.apple.com/do
 
 #### Prerequisites:
 
-This project requires an FlickR API key.  You can follow this steps:
+This project requires an Flickr API key.  You can follow this steps:
 1. Create an app following this [link](https://www.flickr.com/services/apps/create/noncommercial/?)
 2. Take note of API key
 3. Edit the flow authentication of created app with these settings:
