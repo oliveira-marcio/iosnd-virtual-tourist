@@ -53,7 +53,7 @@ class FlickrGateway {
         1 + (totalPages > 0 ? Int(arc4random()) % 100 : totalPages)
     }
 
-    func getPhoto(from url: URL, completion: @escaping (UIImage?) -> Void) {
+    func getPhoto(from url: URL, completion: @escaping (Data?) -> Void) {
         let task = URLSession.shared.dataTask(with: url) {
             (data, response, error) in
             guard let data = data else {
@@ -62,15 +62,14 @@ class FlickrGateway {
                 return
             }
 
-            let downloadedImage = UIImage(data: data)
             DispatchQueue.main.async {
-                completion(downloadedImage)
+                completion(data)
             }
         }
         task.resume()
     }
 
-    func getLocationAlbum(latitude: Double, longitude: Double, completion: @escaping ([URL]) -> Void) {
+    func getLocationAlbum(latitude: Double, longitude: Double, completion: @escaping ([String]) -> Void) {
         let url = getAlbumURL(latitude: latitude, longitude: longitude)
         let request = URLRequest(url: url)
         let session = URLSession.shared
@@ -88,7 +87,7 @@ class FlickrGateway {
                 return
             }
 
-            let imagesURLs: [URL] = photo.compactMap {
+            let imagesURLs: [String] = photo.compactMap {
                 self.getImageURL(photo: $0)
             }
 
@@ -123,7 +122,7 @@ class FlickrGateway {
         return urlComponent.url!
     }
 
-    private func getImageURL(photo: [String: Any]) -> URL? {
+    private func getImageURL(photo: [String: Any]) -> String? {
         guard let id = photo["id"] as? String,
             let farm = photo["farm"] as? Int,
             let server = photo["server"] as? String,
@@ -131,7 +130,6 @@ class FlickrGateway {
                 return nil
         }
 
-        let urlString = "https://farm\(farm).staticflickr.com/\(server)/\(id)_\(secret)_\(FlickrGateway.photoSizeParam).jpg"
-        return URL(string: urlString)!
+        return "https://farm\(farm).staticflickr.com/\(server)/\(id)_\(secret)_\(FlickrGateway.photoSizeParam).jpg"
     }
 }

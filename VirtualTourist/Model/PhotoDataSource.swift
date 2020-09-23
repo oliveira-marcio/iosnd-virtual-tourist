@@ -17,8 +17,6 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     private var collectionView: UICollectionView!
     private var pin: Pin!
     private var configureFunction: (PhotoCollectionViewCell, Data?) -> Void
-
-    private var imagesURLs = [URL]()
     private var isFirstLoading = true
     private var isBatchInsert = false
     private var isBatchDelete = false
@@ -81,29 +79,9 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
 
         deletePhotos()
         gateway.getLocationAlbum(latitude: pin.latitude, longitude: pin.longitude) { imagesURLs in
-            self.imagesURLs = imagesURLs
-            self.addBlankPhotos()
-            completion(imagesURLs.count > 0)
-//            self.collectionView.reloadData()
-//            gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
-//                self.configureFunction(cell, image)
-//            }
-        }
-    }
-
-    private func addBlankPhotos() {
-        viewManagedObjectContext.perform {
-            self.isBatchInsert = true
-
-            for  _ in self.imagesURLs {
-                let photo = Photo(context: self.viewManagedObjectContext)
-                photo.image = nil
-                photo.creationDate = Date()
-                photo.pin = self.pin
+            self.addPhotos(imagesURLs: imagesURLs) { photos in
+                self.updatePhotos(photos: photos, completion: completion)
             }
-
-            try? self.viewManagedObjectContext.save()
-            self.isBatchInsert = false
         }
     }
 
@@ -122,13 +100,51 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
             try? self.viewManagedObjectContext.save()
             self.isBatchDelete = false
         }
-
     }
 
-    private func updatePhoto(photo: Photo, rawImage: Data) {
+    private func addPhotos(imagesURLs: [String], completion: @escaping ([Photo]) -> Void) {
         viewManagedObjectContext.perform {
-            photo.image = rawImage
-            try? self.viewManagedObjectContext.save()
+            self.isBatchInsert = true
+
+            for  imageURL in imagesURLs {
+                let photo = Photo(context: self.viewManagedObjectContext)
+                photo.image = nil
+                photo.creationDate = Date()
+                photo.url = imageURL
+                photo.pin = self.pin
+            }
+
+            do {
+                try self.viewManagedObjectContext.save()
+                completion(self.fetchedResultsController.fetchedObjects ?? [])
+            } catch {
+                completion([])
+            }
+            self.isBatchInsert = false
+        }
+    }
+
+    private func updatePhotos(photos: [Photo], completion: @escaping (Bool) -> Void) {
+        let imageDownloadSyncGroup = DispatchGroup()
+
+        viewManagedObjectContext.perform {
+            for photo in photos {
+                imageDownloadSyncGroup.enter()
+                guard let url = photo.url, let photoUrl = URL(string: url) else {
+                    imageDownloadSyncGroup.leave()
+                    continue
+                }
+
+                self.gateway.getPhoto(from: photoUrl) { image in
+                    photo.image = image
+                    try? self.viewManagedObjectContext.save()
+                    imageDownloadSyncGroup.leave()
+                }
+            }
+
+            imageDownloadSyncGroup.notify(queue: .main) {
+                completion(photos.count > 0)
+            }
         }
     }
 

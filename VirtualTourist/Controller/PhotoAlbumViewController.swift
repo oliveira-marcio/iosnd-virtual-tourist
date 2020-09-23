@@ -36,7 +36,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         computeFlowLayout()
         setupPhotoDataSource()
 
-        photosCollectionView.isHidden = true
+        photosCollectionView.isHidden = false
         noImagesLabel.isHidden = true
         loadingCollection(true)
 
