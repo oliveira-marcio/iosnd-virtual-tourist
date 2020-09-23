@@ -101,6 +101,15 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         }
     }
 
+    func deletePhoto(at indexPath: IndexPath) {
+        let itemToDelete = fetchedResultsController.object(at: indexPath)
+        viewManagedObjectContext.delete(itemToDelete)
+
+        viewManagedObjectContext.perform {
+            try? self.viewManagedObjectContext.save()
+        }
+    }
+
     private func addPhotos(imagesURLs: [String], completion: @escaping ([Photo]) -> Void) {
         viewManagedObjectContext.perform {
             self.isBatchInsert = true

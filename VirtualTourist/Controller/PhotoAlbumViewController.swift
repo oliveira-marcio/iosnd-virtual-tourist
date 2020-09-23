@@ -9,7 +9,7 @@
 import UIKit
 import MapKit
 
-class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
+class PhotoAlbumViewController: UIViewController, MKMapViewDelegate, UICollectionViewDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var photosCollectionView: UICollectionView!
@@ -31,6 +31,7 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         super.viewDidLoad()
 
         mapView.delegate = self
+        photosCollectionView.delegate = self
 
         loadMapSelectedPin()
         computeFlowLayout()
@@ -125,6 +126,12 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         }
 
         return pinView
+    }
+
+    // MARK: - Collection View Delegate
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        photoDataSource.deletePhoto(at: indexPath)
     }
 
     // MARK: - Actions
