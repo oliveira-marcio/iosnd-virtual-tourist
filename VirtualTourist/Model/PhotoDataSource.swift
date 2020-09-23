@@ -16,7 +16,7 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     private var gateway: FlickrGateway!
     private var collectionView: UICollectionView!
     private var pin: Pin!
-    private var configureFunction: (PhotoCollectionViewCell, UIImage?) -> Void
+    private var configureFunction: (PhotoCollectionViewCell, Data?) -> Void
 
     private var imagesURLs = [URL]()
 
@@ -25,7 +25,7 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         pin: Pin,
         gateway: FlickrGateway,
         collectionView: UICollectionView,
-        configure: @escaping (PhotoCollectionViewCell, UIImage?) -> Void
+        configure: @escaping (PhotoCollectionViewCell, Data?) -> Void
     ) {
         viewManagedObjectContext = dataController.viewContext
         backgroundManagedObjectContext = dataController.backgroundContext
@@ -53,7 +53,6 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
 
         do {
             try fetchedResultsController.performFetch()
-            getNewAlbumCollection()
         } catch {
             fatalError("The fetch could not be performed: \(error.localizedDescription)")
         }
@@ -65,27 +64,29 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
 
     // MARK: - Request New Album Collection From API
 
-    func getNewAlbumCollection() {
+    func getNewAlbumCollection(completion: @escaping (Bool) -> Void) {
         gateway.getLocationAlbum(latitude: pin.latitude, longitude: pin.longitude) { imagesURLs in
             self.imagesURLs = imagesURLs
-            self.collectionView.reloadData()
+            completion(imagesURLs.count > 0)
+            print(imagesURLs)
+//            self.collectionView.reloadData()
+//            gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
+//                self.configureFunction(cell, image)
+//            }
         }
     }
 
     // MARK: - Collection View Delegate
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return imagesURLs.count
+        return fetchedResultsController.sections?[section].numberOfObjects ?? 0
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionViewCell", for: indexPath) as! PhotoCollectionViewCell
 
-        // TODO: Just for testing purposes. Do the right implementation!
-        configureFunction(cell, nil)
-        gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
-            self.configureFunction(cell, image)
-        }
+        let photo = fetchedResultsController.object(at: indexPath)
+        configureFunction(cell, photo.image)
 
         return cell
     }

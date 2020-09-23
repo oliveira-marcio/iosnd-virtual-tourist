@@ -116,6 +116,15 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No images found." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cB1-zI-FdA">
+                                <rect key="frame" x="140" y="563.5" width="134.5" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="vat-Oc-vO1">
+                                <rect key="frame" x="188.5" y="555.5" width="37" height="37"/>
+                            </activityIndicatorView>
                             <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="k3a-E9-Iig">
                                 <rect key="frame" x="0.0" y="852" width="414" height="44"/>
                                 <constraints>
@@ -123,7 +132,7 @@
                                 </constraints>
                                 <items>
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="Slx-9p-WIT"/>
-                                    <barButtonItem title="New Collection" id="Nit-6s-dcY">
+                                    <barButtonItem enabled="NO" title="New Collection" id="Nit-6s-dcY">
                                         <connections>
                                             <action selector="getNewAlbumCollection:" destination="SSo-aL-xua" id="UJ3-gy-e7j"/>
                                         </connections>
@@ -141,9 +150,13 @@
                             <constraint firstAttribute="bottom" secondItem="k3a-E9-Iig" secondAttribute="bottom" id="JQZ-tV-t19"/>
                             <constraint firstItem="k3a-E9-Iig" firstAttribute="trailing" secondItem="TT9-63-VdW" secondAttribute="trailing" id="Pso-kZ-pGE"/>
                             <constraint firstItem="Cve-fR-bTG" firstAttribute="leading" secondItem="TT9-63-VdW" secondAttribute="leading" id="Qwg-Lw-OFL"/>
+                            <constraint firstItem="vat-Oc-vO1" firstAttribute="centerY" secondItem="EAb-6v-ul3" secondAttribute="centerY" id="V0U-cz-Yt9"/>
                             <constraint firstItem="k3a-E9-Iig" firstAttribute="top" secondItem="EAb-6v-ul3" secondAttribute="bottom" id="WaG-Tn-NbS"/>
                             <constraint firstItem="EAb-6v-ul3" firstAttribute="leading" secondItem="w75-Nc-AWg" secondAttribute="leading" id="aix-5s-Ugk"/>
+                            <constraint firstItem="cB1-zI-FdA" firstAttribute="centerX" secondItem="EAb-6v-ul3" secondAttribute="centerX" id="moX-QE-wqj"/>
                             <constraint firstItem="k3a-E9-Iig" firstAttribute="leading" secondItem="TT9-63-VdW" secondAttribute="leading" id="mpP-R1-Rur"/>
+                            <constraint firstItem="vat-Oc-vO1" firstAttribute="centerX" secondItem="EAb-6v-ul3" secondAttribute="centerX" id="p4M-n4-Ig4"/>
+                            <constraint firstItem="cB1-zI-FdA" firstAttribute="centerY" secondItem="EAb-6v-ul3" secondAttribute="centerY" id="yQ3-b2-9TZ"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="TT9-63-VdW"/>
                     </view>
@@ -155,8 +168,11 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="activityIndicator" destination="vat-Oc-vO1" id="sTJ-B0-PQK"/>
                         <outlet property="flowLayout" destination="huk-i7-IUJ" id="c0n-oi-MYi"/>
                         <outlet property="mapView" destination="Cve-fR-bTG" id="7Av-jV-MWH"/>
+                        <outlet property="newCollectionButton" destination="Nit-6s-dcY" id="IYp-Hg-jKE"/>
+                        <outlet property="noImagesLabel" destination="cB1-zI-FdA" id="wQJ-wh-dia"/>
                         <outlet property="photosCollectionView" destination="EAb-6v-ul3" id="Mes-9B-ZfP"/>
                     </connections>
                 </viewController>

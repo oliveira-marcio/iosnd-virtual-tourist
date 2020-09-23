@@ -14,6 +14,9 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
+    @IBOutlet weak var newCollectionButton: UIBarButtonItem!
+    @IBOutlet weak var noImagesLabel: UILabel!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
     var dataController: DataController!
     var photoDataSource: PhotoDataSource!
@@ -32,6 +35,12 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
         loadMapSelectedPin()
         computeFlowLayout()
         setupPhotoDataSource()
+
+        photosCollectionView.isHidden = true
+        noImagesLabel.isHidden = true
+        loadingCollection(true)
+
+        photoDataSource.getNewAlbumCollection(completion: handleGetNewAlbum(hasPhotos:))
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -83,14 +92,18 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
             pin: selectedPin,
             gateway: gateway,
             collectionView: photosCollectionView,
-            configure: configureCollectionViewCell(cell:image:)
+            configure: configureCollectionViewCell(cell:data:)
         )
 
         photosCollectionView.dataSource = photoDataSource
     }
 
-    private func configureCollectionViewCell(cell: PhotoCollectionViewCell, image: UIImage?) {
-        cell.photoImageView.image = image ?? UIImage(named: "VirtualTourist_120")
+    private func configureCollectionViewCell(cell: PhotoCollectionViewCell, data: Data?) {
+        if let data = data {
+            cell.photoImageView.image = UIImage(data: data)
+        } else {
+            cell.photoImageView.image = UIImage(named: "VirtualTourist_120")
+        }
     }
 
     // MARK: - Map View Delegate
@@ -135,6 +148,19 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
     }
 
     @IBAction func getNewAlbumCollection(_ sender: Any) {
-        photoDataSource.getNewAlbumCollection()
+        loadingCollection(true)
+        noImagesLabel.isHidden = true
+        photoDataSource.getNewAlbumCollection(completion: handleGetNewAlbum(hasPhotos:))
+    }
+
+    func handleGetNewAlbum(hasPhotos: Bool) {
+        loadingCollection(false)
+        photosCollectionView.isHidden = hasPhotos
+        noImagesLabel.isHidden = !hasPhotos
+    }
+
+    func loadingCollection(_ loading: Bool) {
+        newCollectionButton.isEnabled = !loading
+        loading ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
     }
 }
