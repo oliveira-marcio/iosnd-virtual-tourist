@@ -19,6 +19,9 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     private var configureFunction: (PhotoCollectionViewCell, Data?) -> Void
 
     private var imagesURLs = [URL]()
+    private var isFirstLoading = true
+    private var isBatchInsert = false
+    private var isBatchDelete = false
 
     init(
         dataController: DataController,
@@ -65,10 +68,22 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
     // MARK: - Request New Album Collection From API
 
     func getNewAlbumCollection(completion: @escaping (Bool) -> Void) {
+        guard let photos = fetchedResultsController.fetchedObjects else {
+            completion(false)
+            return
+        }
+
+        if isFirstLoading && photos.count > 0 {
+            isFirstLoading = false
+            completion(true)
+            return
+        }
+
+        deletePhotos()
         gateway.getLocationAlbum(latitude: pin.latitude, longitude: pin.longitude) { imagesURLs in
             self.imagesURLs = imagesURLs
+            self.addBlankPhotos()
             completion(imagesURLs.count > 0)
-            print(imagesURLs)
 //            self.collectionView.reloadData()
 //            gateway.getPhoto(from: imagesURLs[indexPath.row]) { image in
 //                self.configureFunction(cell, image)
@@ -76,7 +91,52 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         }
     }
 
-    // MARK: - Collection View Delegate
+    private func addBlankPhotos() {
+        viewManagedObjectContext.perform {
+            self.isBatchInsert = true
+
+            for  _ in self.imagesURLs {
+                let photo = Photo(context: self.viewManagedObjectContext)
+                photo.image = nil
+                photo.creationDate = Date()
+                photo.pin = self.pin
+            }
+
+            try? self.viewManagedObjectContext.save()
+            self.isBatchInsert = false
+        }
+    }
+
+    private func deletePhotos() {
+        guard let photos = fetchedResultsController.fetchedObjects else {
+            return
+        }
+
+        viewManagedObjectContext.perform {
+            self.isBatchDelete = true
+
+            for photo in photos {
+                self.viewManagedObjectContext.delete(photo)
+            }
+
+            try? self.viewManagedObjectContext.save()
+            self.isBatchDelete = false
+        }
+
+    }
+
+    private func updatePhoto(photo: Photo, rawImage: Data) {
+        viewManagedObjectContext.perform {
+            photo.image = rawImage
+            try? self.viewManagedObjectContext.save()
+        }
+    }
+
+    // MARK: - Collection View data source
+
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return fetchedResultsController.sections?.count ?? 1
+    }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return fetchedResultsController.sections?[section].numberOfObjects ?? 0
@@ -89,5 +149,75 @@ class PhotoDataSource: NSObject, NSFetchedResultsControllerDelegate, UICollectio
         configureFunction(cell, photo.image)
 
         return cell
+    }
+
+     // MARK: - Fetched Results Controller Delegate
+
+    var operationQueue: [BlockOperation]!
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        operationQueue = [BlockOperation]()
+    }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        if isBatchInsert || isBatchDelete {
+            collectionView.reloadData()
+        }
+
+        for operation in operationQueue {
+            operation.start()
+        }
+
+        operationQueue = nil
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            if self.isBatchInsert {
+                return
+            }
+
+            let operation = BlockOperation(block: { () -> Void in
+                guard let indexPath = newIndexPath else {
+                    return
+                }
+
+                self.collectionView.insertItems(at: [indexPath])
+            })
+
+            operationQueue.append(operation)
+        case .delete:
+            if self.isBatchDelete {
+                return
+            }
+
+            let operation = BlockOperation(block: { () -> Void in
+                guard let indexPath = indexPath else {
+                    return
+                }
+
+                self.collectionView.deleteItems(at: [indexPath])
+            })
+
+            operationQueue.append(operation)
+        case .update:
+            let operation = BlockOperation(block: { () -> Void in
+                guard let indexPath = indexPath else {
+                    return
+                }
+
+                guard let cell = self.collectionView.cellForItem(at: indexPath) as? PhotoCollectionViewCell else {
+                    return
+                }
+
+                let photo = anObject as! Photo
+                self.configureFunction(cell, photo.image)
+            })
+            operationQueue.append(operation)
+
+        default:
+            break
+        }
     }
 }

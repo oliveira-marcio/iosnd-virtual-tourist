@@ -155,8 +155,8 @@ class PhotoAlbumViewController: UIViewController, MKMapViewDelegate {
 
     func handleGetNewAlbum(hasPhotos: Bool) {
         loadingCollection(false)
-        photosCollectionView.isHidden = hasPhotos
-        noImagesLabel.isHidden = !hasPhotos
+        photosCollectionView.isHidden = !hasPhotos
+        noImagesLabel.isHidden = hasPhotos
     }
 
     func loadingCollection(_ loading: Bool) {
